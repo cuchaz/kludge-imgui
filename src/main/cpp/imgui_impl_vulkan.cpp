@@ -249,8 +249,10 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
     // Bind pipeline and descriptor sets:
     {
         vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_Pipeline);
+        /* Jeff: bind descriptor sets per draw call
         VkDescriptorSet desc_set[1] = { g_DescriptorSet };
         vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_PipelineLayout, 0, 1, desc_set, 0, NULL);
+        */
     }
 
     // Bind Vertex And Index Buffer:
@@ -286,6 +288,8 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
         vkCmdPushConstants(command_buffer, g_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, sizeof(float) * 2, sizeof(float) * 2, translate);
     }
 
+    ImTextureID fontTexId = ImGui::GetIO().Fonts->TexID;
+
     // Render the command lists:
     int vtx_offset = 0;
     int idx_offset = 0;
@@ -310,7 +314,18 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
                 scissor.extent.width = (uint32_t)(pcmd->ClipRect.z - pcmd->ClipRect.x);
                 scissor.extent.height = (uint32_t)(pcmd->ClipRect.w - pcmd->ClipRect.y + 1); // FIXME: Why +1 here?
                 vkCmdSetScissor(command_buffer, 0, 1, &scissor);
-                
+
+                // Jeff: bind a user texture (via descriptor set) if needed
+                VkDescriptorSet desc_set[1];
+                if (pcmd->TextureId == fontTexId) {
+                	// bind the fonts descriptor set
+                	desc_set[0] = g_DescriptorSet;
+                } else {
+                	// bind the user descriptor set
+                	desc_set[0] = (VkDescriptorSet)pcmd->TextureId;
+                }
+				vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_PipelineLayout, 0, 1, desc_set, 0, NULL);
+
                 // Draw
                 vkCmdDrawIndexed(command_buffer, pcmd->ElemCount, 1, idx_offset, vtx_offset, 0);
             }
