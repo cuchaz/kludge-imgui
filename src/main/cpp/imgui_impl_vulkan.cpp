@@ -302,6 +302,10 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
             if (pcmd->UserCallback)
             {
+            	// Jeff: bind the usual descriptor set before the callback
+	            VkDescriptorSet desc_set[1] = { g_DescriptorSet };
+				vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_PipelineLayout, 0, 1, desc_set, 0, NULL);
+
                 pcmd->UserCallback(cmd_list, pcmd);
             }
             else
