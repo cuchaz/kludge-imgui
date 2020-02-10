@@ -1494,6 +1494,12 @@ CIMGUI_API ImVector_ImWchar* ImVector_ImWchar_create();
 CIMGUI_API void ImVector_ImWchar_destroy(ImVector_ImWchar* p);
 CIMGUI_API void ImVector_ImWchar_Init(ImVector_ImWchar* p);
 CIMGUI_API void ImVector_ImWchar_UnInit(ImVector_ImWchar* p);
+
+// internal/BETA ImGUI features
+typedef int ImGuiItemFlags;
+CIMGUI_API void igPushItemFlag(ImGuiItemFlags option, bool enabled);
+CIMGUI_API void igPopItemFlag();
+
 #endif //CIMGUI_INCLUDED
 
 

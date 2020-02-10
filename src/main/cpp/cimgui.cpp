@@ -2483,3 +2483,13 @@ CIMGUI_API void ImVector_ImWchar_UnInit(ImVector_ImWchar* p)
 	p->~ImVector<ImWchar>();
 }
 
+// internal/BETA ImGUI features
+CIMGUI_API void igPushItemFlag(ImGuiItemFlags option, bool enabled)
+{
+	ImGui::PushItemFlag(option, enabled);
+}
+CIMGUI_API void igPopItemFlag()
+{
+	ImGui::PopItemFlag();
+}
+
