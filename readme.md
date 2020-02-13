@@ -26,7 +26,12 @@ but so far it seems to work pretty well.
 
 Kludge is in very early development and is not yet included in any artifact repository.
 
+Prerequisites: Make sure the Vulkan SDK and the GLFW SDKs are installed.
+
 To build Kluge-ImGUI, simply run:
 ```./gradlew assembleRelease```
 
-The binary for your platform should appear in `build/lib/main/release`
+NOTE: Tragically, building on Windows is much much more complicated.
+See the comments in `build.gradle.kts` for more instructions.
+
+If the compilation worked, the binary for your platform should appear in `build/lib/main/release`

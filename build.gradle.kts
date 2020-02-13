@@ -33,6 +33,24 @@ library {
 				else -> "extern \"C\""
 			}
 			compilerArgs.add("-DIMGUI_IMPL_API=$api")
+
+			when (OperatingSystem.current()) {
+
+				// linux makes things easy
+				OperatingSystem.LINUX -> {
+					// nothing to do =)
+				}
+
+				// windows makes things hard
+				OperatingSystem.WINDOWS -> {
+					// add the include folders to the compiler
+					// (make sure to edit these paths to point to your install locations)
+					compilerArgs.addAll(
+						"/IC:\\VulkanSDK\\1.2.131.2\\Include",
+						"/IC:\\glfw-3.3.2.bin.WIN64\\include"
+					)
+				}
+			}
 		}
 
 		// tell the linker about the library dependencies
@@ -46,11 +64,15 @@ library {
 					OperatingSystem.LINUX -> listOf("-lvulkan", "-lglfw")
 
 					// windows makes things hard
-					// download the vulkan and glfw SDKs and make sure these library files are available to the linker
-					// put them in e.g.: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.22.27905\lib
-					// also, rename glfw3dll.lib to glfw.lib using e.g.:
+					// download the vulkan SDK and the glfw binary distribution
+					// rename glfw3dll.lib to glfw.lib using e.g.:
 					// https://github.com/cmberryau/rename_dll/blob/master/rename_dll.py
-					OperatingSystem.WINDOWS -> listOf("vulkan-1.lib", "glfw.lib")
+					// (make sure to edit these paths to point to your install locations)
+					OperatingSystem.WINDOWS -> listOf(
+						"/LIBPATH:C:\\VulkanSDK\\1.2.131.2\\Lib",
+						"/LIBPATH:C:\\glfw-3.3.2.bin.WIN64\\lib-vc2019",
+						"vulkan-1.lib", "glfw.lib"
+					)
 
 					// TODO: OSX
 
