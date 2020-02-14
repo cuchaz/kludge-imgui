@@ -65,7 +65,7 @@ library {
 
 					// windows makes things hard
 					// download the vulkan SDK and the glfw binary distribution
-					// rename glfw3dll.lib to glfw.lib using e.g.:
+					// rename glfw3.dll to glfw.dll using e.g.:
 					// https://github.com/cmberryau/rename_dll/blob/master/rename_dll.py
 					// (make sure to edit these paths to point to your install locations)
 					OperatingSystem.WINDOWS -> listOf(
