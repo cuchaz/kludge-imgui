@@ -50,6 +50,15 @@ library {
 						"/IC:\\glfw-3.3.2.bin.WIN64\\include"
 					)
 				}
+
+				OperatingSystem.MAC_OS -> {
+					// add the include folders to the compiler
+					// (make sure to edit these paths to point to your install locations)
+					compilerArgs.addAll(
+						"-I/glfw/glfw-3.3.2.bin.MACOS/include",
+						"-I/vulkansdk-macos-1.2.131.2/macOS/include"
+					)
+				}
 			}
 		}
 
@@ -57,29 +66,38 @@ library {
 		if (this is ComponentWithSharedLibrary) {
 			linkTask.get().apply {
 
-				val flags = when (OperatingSystem.current()) {
+				when (OperatingSystem.current()) {
 
 					// linux makes things easy
 					// just install the vulkan and glfw dev packages
-					OperatingSystem.LINUX -> listOf("-lvulkan", "-lglfw")
+					OperatingSystem.LINUX -> {
+						linkerArgs.addAll("-lvulkan", "-lglfw")
+					}
 
 					// windows makes things hard
 					// download the vulkan SDK and the glfw binary distribution
 					// rename glfw3.dll to glfw.dll using e.g.:
 					// https://github.com/cmberryau/rename_dll/blob/master/rename_dll.py
 					// (make sure to edit these paths to point to your install locations)
-					OperatingSystem.WINDOWS -> listOf(
-						"/LIBPATH:C:\\VulkanSDK\\1.2.131.2\\Lib",
-						"/LIBPATH:C:\\glfw-3.3.2.bin.WIN64\\lib-vc2019",
-						"vulkan-1.lib", "glfw.lib"
-					)
+					OperatingSystem.WINDOWS -> {
+						linkerArgs.addAll(
+							"/LIBPATH:C:\\VulkanSDK\\1.2.131.2\\Lib",
+							"/LIBPATH:C:\\glfw-3.3.2.bin.WIN64\\lib-vc2019",
+							"vulkan-1.lib", "glfw.lib"
+						)
+					}
 
-					// TODO: OSX
-
-					else -> throw UnsupportedOperationException("unsupported operating system: ${OperatingSystem.current()}")
+					OperatingSystem.MAC_OS -> {
+						// install the Vulkan SDK for OSX, (using MoltenVK), and the glfw binary distribution
+						// (make sure to edit these paths to point to your install locations)
+						linkerArgs.addAll(
+							"-L/vulkansdk-macos-1.2.131.2/MoltenVK/macOS/dynamic", "-lMoltenVK",
+							"-L/glfw/glfw-3.3.2.bin.MACOS/lib-macos", "-lglfw.3",
+							"-framework", "Cocoa",
+							"-framework", "IOKit"
+						)
+					}
 				}
-
-				linkerArgs.addAll(flags)
 			}
 		}
 	}
