@@ -28,13 +28,13 @@ class Lib(val name: String) {
 	fun get(prop: String) =
 		System.getProperty(prop)
 			?: throw NoSuchElementException("""
-					|Need system property $prop on platform $os.
+					|Need system property "$prop" on platform $os.
 					|Add it to gradle.properties like this:
 					|systemProp.$prop = /path/to/folder
 				""".trimMargin())
 
-	val include get() = get("include")
-	val lib get() = get("lib")
+	val include get() = get(includeName)
+	val lib get() = get(libName)
 }
 
 inner class Paths {
@@ -80,8 +80,8 @@ library {
 				OperatingSystem.MAC_OS -> {
 					// add the include folders to the compiler
 					compilerArgs.addAll(
-						"/I${paths.vulkan.include}",
-						"/I${paths.glfw.include}"
+						"-I${paths.vulkan.include}",
+						"-I${paths.glfw.include}"
 					)
 				}
 			}

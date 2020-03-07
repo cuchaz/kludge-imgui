@@ -24,14 +24,21 @@ to build platform-specific binaries. Gradle's support for building C/C++ project
 seems to be [rather new and experimental](https://blog.gradle.org/introducing-the-new-cpp-plugins),
 but so far it seems to work pretty well.
 
-Kludge is in very early development and is not yet included in any artifact repository.
+Prerequisites: Make sure the Vulkan and GLFW SDKs are installed for your platform.
 
-Prerequisites: Make sure the Vulkan SDK and the GLFW SDKs are installed.
+On Windows and OSX, create a `gradle.properties` file with the paths to your installation locations
+for header files (`include`), and dynamic libraries (`lib`):
+```
+systemProp.paths.vulkan.include = /path/to/folder
+systemProp.paths.glfw.include = /path/to/folder
 
-To build Kluge-ImGUI, simply run:
+systemProp.paths.vulkan.lib = /path/to/folder
+systemProp.paths.glfw.lib = /path/to/folder
+```
+On Linux, specifying these paths via `gradle.properties` is not necessary, since the package
+manager will tell the compiler where they are.
+
+Finally, to build Kluge-ImGUI, simply run:
 ```./gradlew assembleRelease```
-
-NOTE: Tragically, building on Windows is much much more complicated.
-See the comments in `build.gradle.kts` for more instructions.
 
 If the compilation worked, the binary for your platform should appear in `build/lib/main/release`
