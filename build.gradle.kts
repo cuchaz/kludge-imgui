@@ -2,7 +2,6 @@
 import org.gradle.internal.os.OperatingSystem
 import com.sun.jna.Platform
 
-val os = OperatingSystem.current()
 
 buildscript {
 	dependencies {
@@ -15,9 +14,38 @@ plugins {
 }
 
 group = "cuchaz"
-version = "1.67"
+version = "1.75"
+
+
+val os = OperatingSystem.current()
+
+
+class Lib(val name: String) {
+
+	val includeName = "paths.$name.include"
+	val libName = "paths.$name.lib"
+
+	fun get(prop: String) =
+		System.getProperty(prop)
+			?: throw NoSuchElementException("""
+					|Need system property $prop on platform $os.
+					|Add it to gradle.properties like this:
+					|systemProp.$prop = /path/to/folder
+				""".trimMargin())
+
+	val include get() = get("include")
+	val lib get() = get("lib")
+}
+
+inner class Paths {
+	val vulkan = Lib("vulkan")
+	val glfw = Lib("glfw")
+}
+val paths = Paths()
 
 library {
+
+	println("Platform: ${Platform.RESOURCE_PREFIX}")
 
 	linkage.set(listOf(Linkage.SHARED))
 
@@ -26,15 +54,13 @@ library {
 		// make the impl functions exportable using C conventions
 		compileTask.get().apply {
 
-			println("Compiling for platform: ${Platform.RESOURCE_PREFIX}")
-
-			val api = when (OperatingSystem.current()) {
+			val api = when (os) {
 				OperatingSystem.WINDOWS -> "extern \"C\" __declspec(dllexport)"
 				else -> "extern \"C\""
 			}
 			compilerArgs.add("-DIMGUI_IMPL_API=$api")
 
-			when (OperatingSystem.current()) {
+			when (os) {
 
 				// linux makes things easy
 				OperatingSystem.LINUX -> {
@@ -44,19 +70,18 @@ library {
 				// windows makes things hard
 				OperatingSystem.WINDOWS -> {
 					// add the include folders to the compiler
-					// (make sure to edit these paths to point to your install locations)
 					compilerArgs.addAll(
-						"/IC:\\VulkanSDK\\1.2.131.2\\Include",
-						"/IC:\\glfw-3.3.2.bin.WIN64\\include"
+						"/I${paths.vulkan.include}",
+						"/I${paths.glfw.include}"
 					)
 				}
 
+				// OSX makes things hard
 				OperatingSystem.MAC_OS -> {
 					// add the include folders to the compiler
-					// (make sure to edit these paths to point to your install locations)
 					compilerArgs.addAll(
-						"-I/glfw/glfw-3.3.2.bin.MACOS/include",
-						"-I/vulkansdk-macos-1.2.131.2/macOS/include"
+						"/I${paths.vulkan.include}",
+						"/I${paths.glfw.include}"
 					)
 				}
 			}
@@ -66,12 +91,15 @@ library {
 		if (this is ComponentWithSharedLibrary) {
 			linkTask.get().apply {
 
-				when (OperatingSystem.current()) {
+				when (os) {
 
 					// linux makes things easy
 					// just install the vulkan and glfw dev packages
 					OperatingSystem.LINUX -> {
-						linkerArgs.addAll("-lvulkan", "-lglfw")
+						linkerArgs.addAll(
+							"-lvulkan",
+							"-lglfw"
+						)
 					}
 
 					// windows makes things hard
@@ -81,18 +109,18 @@ library {
 					// (make sure to edit these paths to point to your install locations)
 					OperatingSystem.WINDOWS -> {
 						linkerArgs.addAll(
-							"/LIBPATH:C:\\VulkanSDK\\1.2.131.2\\Lib",
-							"/LIBPATH:C:\\glfw-3.3.2.bin.WIN64\\lib-vc2019",
-							"vulkan-1.lib", "glfw.lib"
+							"/LIBPATH:${paths.vulkan.lib}", "vulkan-1.lib",
+							"/LIBPATH:${paths.glfw.lib}", "glfw.lib"
 						)
 					}
 
+					// OSX makes things hard
+					// download and install the Vulkan SDK for OSX, (using MoltenVK),
+					// and the glfw binary distribution
 					OperatingSystem.MAC_OS -> {
-						// install the Vulkan SDK for OSX, (using MoltenVK), and the glfw binary distribution
-						// (make sure to edit these paths to point to your install locations)
 						linkerArgs.addAll(
-							"-L/vulkansdk-macos-1.2.131.2/MoltenVK/macOS/dynamic", "-lMoltenVK",
-							"-L/glfw/glfw-3.3.2.bin.MACOS/lib-macos", "-lglfw.3",
+							"-L${paths.vulkan.lib}", "-lMoltenVK",
+							"-L${paths.glfw.lib}", "-lglfw.3",
 							"-framework", "Cocoa",
 							"-framework", "IOKit"
 						)
